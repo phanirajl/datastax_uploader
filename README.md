@@ -1,8 +1,10 @@
 # Install
 
+```
 sudo apt install python3 python3-flask
 
 git clone https://github.com/zvolchak/datastax_uploader.git
+```
 
 # Use
 
