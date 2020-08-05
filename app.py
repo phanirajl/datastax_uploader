@@ -25,7 +25,6 @@ from datetime import datetime, timedelta
 import os
 from pdb import set_trace
 
-
 app = Flask('datastax_uploader')
 URI = {} #FIXME: this should be saved into real DB for production
 
@@ -84,7 +83,10 @@ def get_upload_url():
     id = uuid.uuid1().hex
     resp['id'] = id
     timestamp = datetime.now() # time of request
-    upload_uri = '%s/upload/%s' % (flask.request.url_root, id)
+    upload_uri = '{base}upload/{id}'.format(
+        base=flask.request.url_root,
+        id=id
+        )
     URI[id] = {}
     # move uri prefix to a variable in config or something
     URI[id]['path'] = upload_uri
@@ -106,20 +108,24 @@ def upload_asset(id):
     resp = {}
     if id not in URI:
         resp['msg'] = 'Unknown requested upload id "%s"' % id
-        return flask.make_response(resp, 400)
+        return flask.make_response(resp, 406)
 
     if is_timeout(id):
         resp['msg'] = 'Requested uri has expired!'
         clean_up(id)
-        return flask.make_response(resp, 400)
+        return flask.make_response(resp, 408)
+
+    if not flask.request.content_length:
+        resp['msg'] = "No asset found in body."
+        return flask.make_response(resp, 406)
 
     if int(flask.request.content_length) > 20000: # FIXME: any restriction on file size?
         resp['msg'] = "Uploaded file is too big."
-        return flask.make_response(resp, 400)
+        return flask.make_response(resp, 413)
 
     if 'file' not in flask.request.files:
         resp['msg'] = "NO file found in the request!"
-        return flask.make_response(resp, 400)
+        return flask.make_response(resp, 418)
 
     file = flask.request.files['file']
     filename = os.path.basename(URI[id]['path']) # id in the path is the filename
@@ -163,11 +169,12 @@ def main(args={}):
     cfg = args.get('config', {})
     app.config.update(cfg)
     sync(cfg['ASSETS_DIR'])
-    app.run(debug=True)
+    app.run(debug=True, port=cfg.get('PORT', 8080))
 
 
 if __name__ == '__main__':
     cfg = {
+        'PORT': 8080,
         'URI_TIMEOUT': 60,
         'ASSETS_DIR': os.path.realpath('./assets')
     }
