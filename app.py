@@ -17,15 +17,14 @@ Not ready for production, for the following reasons:
  - Security applications are not fully investigated and no-to-little safety measures
  are taken.
 """
-import flask
-from flask import Flask
-from werkzeug.utils import secure_filename
+import os
 import uuid
 from datetime import datetime, timedelta
-import os
-from pdb import set_trace
 
-app = Flask('datastax_uploader')
+import flask
+
+
+app = flask.Flask('datastax_uploader')
 URI = {} #FIXME: this should be saved into real DB for production
 
 
@@ -82,6 +81,7 @@ def get_upload_url():
     resp = {}
     id = uuid.uuid1().hex
     resp['id'] = id
+
     timestamp = datetime.now() # time of request
     upload_uri = '{base}upload/{id}'.format(
         base=flask.request.url_root,
@@ -169,7 +169,11 @@ def main(args={}):
     cfg = args.get('config', {})
     app.config.update(cfg)
     sync(cfg['ASSETS_DIR'])
-    app.run(debug=True, port=cfg.get('PORT', 8080))
+    app.run(
+        debug=True,
+        port=cfg.get('PORT', 8080),
+        ssl_context='adhoc'
+        )
 
 
 if __name__ == '__main__':

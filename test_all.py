@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 import os
 import unittest
-from pdb import set_trace
 from datetime import datetime
-from app import app as flask_app
+from pdb import set_trace
+
 from app import URI
+from app import app as flask_app
 
 
 class FlaskGetUrlTests(unittest.TestCase):
