@@ -12,19 +12,6 @@ RESPONSE = {
     "headers": { "Access-Control-Allow-Origin" : "*" },
 }
 
-def is_timeout(id):
-    """
-        Check the time difference between Now and the time of created asset. By
-    default, assumes 60 sec as a timeout.
-    @return: None if id does not exist (e.g. no file found), True if file created
-            more than 60 seconds ago. False otherwise.
-    """
-    # if id not in URI: return None
-
-    # timeout = URI[id]['timestamp'] + timedelta(seconds=60)
-    # return (datetime.now() - timeout).days >= 0
-    return False
-
 
 def get_url(event, context):
     """
@@ -34,7 +21,6 @@ def get_url(event, context):
     resp = RESPONSE
     body = {}
     id = uuid.uuid1().hex
-    id = '12345'
     body['id'] = id
 
     timestamp = datetime.now() # time of request
@@ -82,10 +68,3 @@ def upload_asset(event, context):
 
     Storage.upload(id, file_obj)
     return resp
-
-
-if __name__ == "__main__":
-    # get_url(None, None)
-    resp = upload_asset({ 'queryStringParameters': { 'id': '12345' }}, None)
-    from pprint import pprint
-    pprint(resp)
